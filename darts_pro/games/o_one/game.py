@@ -72,8 +72,10 @@ class X01Game(AbstractDartsGame[X01GameState]):
 
     def state(self) -> X01GameState:
         return X01GameState(
-            self._turn_number,
-            self._current_player_throw_number,
             self._scores,
             self._target_score,
+            self._turn_number,
+            self._current_throwing_team,
+            self._current_throwing_player,
+            self._current_player_throw_number,
         )

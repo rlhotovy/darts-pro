@@ -12,16 +12,47 @@ class Target:
     is_bullseye: bool = False
 
 
-@dataclass
 class DartBoard:
     """
     Roughly "ordered" (by "slice index") list of targets. Then inside each "slice", we
     have room for doubles and triples
     """
 
-    radial_targets: dict[int, list[Target]]
-    bullseye_targets: list[Target]
-    radial_values_order: list[int]
+    def __init__(
+        self,
+        radial_targets: dict[int, list[Target]],
+        bullseye_targets: list[Target],
+        radial_values_order: list[int],
+    ):
+        self._radial_tarets = radial_targets
+        self._bullseye_targets = bullseye_targets
+        self._radial_values_order = radial_values_order
+        self._indexed_targets = {}
+
+        cur_index = 0
+        for bull in bullseye_targets:
+            self._indexed_targets[cur_index] = bull
+            cur_index += 1
+
+        for _, wedge in radial_targets.items():
+            for area in wedge:
+                self._indexed_targets[cur_index] = area
+
+    @property
+    def indexed_targets(self) -> dict[int, Target]:
+        return self._indexed_targets
+
+    @property
+    def radial_targets(self) -> dict[int, list[Target]]:
+        return self._radial_tarets
+
+    @property
+    def bullseye_targets(self) -> list[Target]:
+        return self._bullseye_targets
+
+    @property
+    def radial_values_order(self) -> list[int]:
+        return self._radial_values_order
 
     @classmethod
     def get_default_dartboard(cls, double_bulls: bool) -> "DartBoard":
