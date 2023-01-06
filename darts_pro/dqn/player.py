@@ -1,11 +1,8 @@
-from typing import Optional
-
 from ..base import (
     AbstractRandomAccuracyPlayer,
     TState,
     AimPoints,
     ProbabilityComputationResult,
-    ThrowCallback,
     DartBoard,
     Target,
 )
@@ -21,12 +18,12 @@ class AgentPlayer(AbstractRandomAccuracyPlayer[TState]):
         team_index: int,
         name,
         probability_lookups: dict[AimPoints, ProbabilityComputationResult],
-        on_throw: Optional[ThrowCallback],
     ):
         self._agent = agent
         self._network = policy_network
-        super().__init__(team_index, name, probability_lookups, on_throw)
+        super().__init__(team_index, name, probability_lookups)
 
     def compute_intended_target(self, board: DartBoard, game_state: TState) -> Target:
-        action = self._agent.select_action(game_state.to_tensor(), self._network)
+        state = game_state.to_tensor()[None]
+        action = self._agent.select_action(state, self._network)
         return board.indexed_targets[action]

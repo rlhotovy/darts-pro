@@ -5,7 +5,6 @@ from .player import (
     compute_probability_lookup,
     AimPoints,
     ProbabilityComputationResult,
-    ThrowCallback,
 )
 from .board import DartBoard, Target
 from .game import AbstractDartsGame

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 import random
 import torch
 
@@ -13,13 +13,24 @@ class Agent:
         actions: list[int],
     ):
         self._strategy = strategy
-        self._current_step = 0
         self._actions = actions
+        self._last_action_taken: Optional[int] = None
+        self._strategy_decay_step = 0
 
     def select_action(self, state: torch.Tensor, policy_network: DQN) -> int:
-        rate = self._strategy.get_exploration_rate(self._current_step)
+        rate = self._strategy.get_exploration_rate(self._strategy_decay_step)
         if rate > random.random():
-            return random.choice(self._actions)
+            action = random.choice(self._actions)
+        else:
+            with torch.no_grad():
+                action = policy_network(state).argmax(dim=1).item()
 
-        with torch.no_grad():
-            return policy_network(state).argmax(dim=1).item()
+        self._last_action_taken = action
+        return action
+
+    @property
+    def last_action_taken(self) -> Optional[int]:
+        return self._last_action_taken
+
+    def increment_strategy_step(self):
+        self._strategy_decay_step += 1

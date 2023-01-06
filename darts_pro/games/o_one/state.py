@@ -23,5 +23,16 @@ class X01GameState(AbstractGameState):
         )
 
     def to_tensor(self) -> torch.Tensor:
-        # TODO: implement this
-        return torch.zeros(10, 10)
+        args = [
+            self.current_throwing_team,
+            self.target_score,
+            self.current_thrower_dart_number,
+            self.turn_number,
+        ]
+
+        # at some point... probably something like from_tensor where we can track
+        # which team score is at which index? Not sure yet if we'll need it
+        for team_score in self.team_scores.values():
+            args.append(team_score)
+
+        return torch.Tensor(args)

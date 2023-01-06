@@ -48,7 +48,9 @@ class X01Game(AbstractDartsGame[X01GameState]):
     def _game_is_complete(self) -> tuple[bool, Optional[int]]:
         min_score, teams_with_score = self._get_min_score_and_teams_with_score()
         if self._turn_number >= self._max_turns:
-            if len(teams_with_score) > 1:
+            if len(self._teams) == 1:
+                return True, None
+            elif len(teams_with_score) > 1:
                 return True, None
             else:
                 return True, teams_with_score[0]
@@ -72,7 +74,7 @@ class X01Game(AbstractDartsGame[X01GameState]):
 
     def state(self) -> X01GameState:
         return X01GameState(
-            self._scores,
+            dict(self._scores),
             self._target_score,
             self._turn_number,
             self._current_throwing_team,

@@ -24,9 +24,9 @@ class AbstractGameState(ABC):
         current_thrower_dart_number: int,
     ):
         self.turn_number = turn_number
-        self.current_throwing_team = (current_throwing_team,)
-        self.current_throwing_player = (current_throwing_player,)
-        current_thrower_dart_number = current_thrower_dart_number
+        self.current_throwing_team = current_throwing_team
+        self.current_throwing_player = current_throwing_player
+        self.current_thrower_dart_number = current_thrower_dart_number
 
     @abstractmethod
     def to_tensor(self) -> torch.Tensor:

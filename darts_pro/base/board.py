@@ -37,6 +37,7 @@ class DartBoard:
         for _, wedge in radial_targets.items():
             for area in wedge:
                 self._indexed_targets[cur_index] = area
+                cur_index += 1
 
     @property
     def indexed_targets(self) -> dict[int, Target]:

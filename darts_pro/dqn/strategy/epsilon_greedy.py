@@ -1,7 +1,9 @@
 import math
 
+from .strategy import ExplorationExploitationStrategy
 
-class EpsilonGreedyStrategy:
+
+class EpsilonGreedyStrategy(ExplorationExploitationStrategy):
     def __init__(self, start: float, end: float, decay: float):
         self._start = start
         self._end = end

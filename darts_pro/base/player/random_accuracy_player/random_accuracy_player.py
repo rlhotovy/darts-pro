@@ -1,8 +1,8 @@
-from typing import Generic, Optional
+from typing import Generic
 
 from ...state import TState
 from ...board import DartBoard, Target
-from ..player import AbstractPlayer, ThrowCallback
+from ..player import AbstractPlayer
 
 from .target_probabilities import ProbabilityComputationResult, AimPoints
 
@@ -13,10 +13,9 @@ class AbstractRandomAccuracyPlayer(AbstractPlayer, Generic[TState]):
         team_index: int,
         name: str,
         probability_lookups: dict[AimPoints, ProbabilityComputationResult],
-        on_throw: Optional[ThrowCallback],
     ):
         self._lookups = probability_lookups
-        super().__init__(team_index, name, on_throw)
+        super().__init__(team_index, name)
 
     def get_outcome_probabilities(
         self, board: DartBoard, intended_target: Target
