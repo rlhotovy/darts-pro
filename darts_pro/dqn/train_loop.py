@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Callable
+from typing import Callable, Optional
+from dataclasses import dataclass
 
 import torch
 import numpy as np
@@ -8,39 +9,62 @@ from .agent import Agent
 from .network import DQN
 from .experience import ReplayMemory, Experience
 from .q_values import QValues
+from .strategy import EpsilonGreedyStrategy
 
-TLoopState = TypeVar("TLoopState")
 
 # [new_state, reward, done, info(?)]
-StepResult = tuple[TLoopState, float, bool, dict]
-# [episode_number, final_state]
-Callback = Callable[[int, TLoopState], None]
+StepResult = tuple[torch.Tensor, float, bool, dict]
+# [episode_number, final_state_tensor]
+Callback = Callable[[int, torch.Tensor], None]
 
 
-class DQNTrainingLoop(ABC, Generic[TLoopState]):
+@dataclass
+class TrainingLoopConfig:
+    train_batch_size: int = 16
+    gamma: float = 0.9999
+    target_net_update: int = 10
+    learning_rate: float = 1e-3
+    # Note: Not used if memory is provided to loop constructor
+    memory_capacity: int = 100000
+
+    # agent config
+    start_exploration_rate: float = 1.0
+    end_exploration_rate: float = 0.1
+    exploration_rate_decay: float = 0.9
+
+
+class DQNTrainingLoop(ABC):
     def __init__(
         self,
         n_episodes: int,
-        agent: Agent,
+        agent_actions: list[int],
         policy_network: DQN,
         target_network: DQN,
-        memory: ReplayMemory,
-        initial_state: TLoopState,
-        optimizer,
-        train_batch_size: int = 16,
-        gamma: float = 0.9999,
+        memory: Optional[ReplayMemory],
+        config: TrainingLoopConfig,
     ):
         self._n_episodes = n_episodes
-        self._current_state = initial_state
-        self._agent = agent
+        strategy = EpsilonGreedyStrategy(
+            config.start_exploration_rate,
+            config.end_exploration_rate,
+            config.exploration_rate_decay,
+        )
+        self._agent = Agent(strategy, agent_actions)
         self._policy_network = policy_network
         self._target_network = target_network
-        self._memory = memory
-        self._optimizer = optimizer
+        self._target_net_update = config.target_net_update
+
+        if memory is not None:
+            self._memory = memory
+        else:
+            self._memory = ReplayMemory(config.memory_capacity)
 
         self._on_episode_end_callacks: list[Callback] = []
-        self._train_batch_size = train_batch_size
-        self._gamma = gamma
+        self._train_batch_size = config.train_batch_size
+        self._gamma = config.gamma
+        self._optimizer = torch.optim.Adam(
+            params=self._policy_network.parameters(), lr=config.learning_rate
+        )
 
     def run(self):
         for episode in range(self._n_episodes):
@@ -50,24 +74,30 @@ class DQNTrainingLoop(ABC, Generic[TLoopState]):
         self._on_episode_end_callacks.append(callback)
 
     @abstractmethod
+    def _current_state(self) -> torch.Tensor:
+        pass
+
+    @abstractmethod
     def _step(self) -> StepResult:
+        pass
+
+    @abstractmethod
+    def _should_increment_agent_strategy(self) -> bool:
         pass
 
     def _play_episode(self, epsiode_number: int):
         done = False
         while not done:
-            current_state_tensor = self._current_state.to_tensor()
+            pre_step_state_tensor = self._current_state()
             action = self._agent.select_action(
-                current_state_tensor, self._policy_network
+                pre_step_state_tensor, self._policy_network
             )
             next_state, reward, done, _ = self._step()
-            next_state_tensor = next_state.to_tensor()
+            if self._should_increment_agent_strategy():
+                self._agent.increment_strategy_step()
 
-            experience = Experience(
-                current_state_tensor, action, reward, next_state_tensor
-            )
+            experience = Experience(pre_step_state_tensor, action, reward, next_state)
             self._memory.push(experience)
-            self._current_state = next_state
 
             if self._memory.can_provide_sample(self._train_batch_size):
                 experiences = self._memory.sample(self._train_batch_size)
@@ -89,8 +119,11 @@ class DQNTrainingLoop(ABC, Generic[TLoopState]):
                 loss.backward()
                 self._optimizer.step()
 
+        if epsiode_number % self._target_net_update == 0:
+            self._target_network.load_state_dict(self._policy_network.state_dict())
+
         for callback in self._on_episode_end_callacks:
-            callback(epsiode_number, self._current_state)
+            callback(epsiode_number, self._current_state())
 
     def _extract_tensors(
         self, experiences: list[Experience]
