@@ -16,7 +16,7 @@
     "workbench.colorCustomizations": {
       "editorRuler.foreground": "#ff4081"
     },
-    "python.pythonPath": "/usr/local/bin/python",
+    "python.defaultInterpreterPath": "/usr/local/bin/python",
     "python.linting.enabled": true,
     "python.linting.mypyEnabled": true,
     "python.linting.mypyPath": "/usr/local/bin/mypy",
