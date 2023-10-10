@@ -8,7 +8,7 @@ RUN python3 -m pip install pipx==0.16.4 && \
     python3 -m pipx ensurepath
 
 # Poetry
-ENV POETRY_VERSION 1.2.2
+ENV POETRY_VERSION 1.5.0
 ENV POETRY_HOME /root/.poetry
 # curl https://install.python-poetry.org - this causes a Segmentation Fault! Madness
 RUN wget -O - -o /dev/null https://install.python-poetry.org | python3
