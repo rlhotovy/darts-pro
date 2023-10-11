@@ -11,6 +11,7 @@ class Experience:
     action: Union[int, torch.Tensor]
     reward: float
     next_state: torch.Tensor
+    next_state_is_final: bool
 
 
 class ReplayMemory:

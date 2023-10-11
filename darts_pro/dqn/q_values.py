@@ -12,16 +12,12 @@ class QValues:
 
     @staticmethod
     def get_next(
-        target_net: torch.nn.Module, next_states: torch.Tensor
+        target_net: torch.nn.Module,
+        next_states: torch.Tensor,
+        next_is_final: torch.Tensor,
     ) -> torch.Tensor:
-        final_state_locations = (
-            next_states.flatten(start_dim=1).max(dim=1)[0].eq(0).type(torch.bool)
-        )
-        non_final_state_locations = final_state_locations == False
-        non_final_states = next_states[non_final_state_locations]
+        non_final_states = next_states[~next_is_final]
         batch_size = next_states.shape[0]
         values = torch.zeros(batch_size).to(QValues.device)
-        values[non_final_state_locations] = (
-            target_net(non_final_states).max(dim=1)[0].detach()
-        )
+        values[~next_is_final] = target_net(non_final_states).max(dim=1)[0].detach()
         return values

@@ -11,7 +11,8 @@ from ...dqn import (
     DQNTrainingLoop,
     TrainingLoopConfig,
     StepResult,
-    AgentPlayer,
+    TrainingPlayer,
+    EpisodeEndPayload,
 )
 from .game import X01Game
 
@@ -62,8 +63,8 @@ class X01TrainingLoop(DQNTrainingLoop):
             config.accuracy_sigma_x, config.accuracy_sigma_y, len(board.radial_targets)
         )
 
-        player = AgentPlayer(self._agent, policy_network, 0, "agent", prob_lookup)
-        team_one = [player]
+        self._player = TrainingPlayer(0, "agent", prob_lookup)
+        team_one = [self._player]
         self._teams = {0: team_one}
 
         self._reset_game(0)
@@ -96,9 +97,10 @@ class X01TrainingLoop(DQNTrainingLoop):
             return True
         return False
 
-    def _step(self) -> StepResult:
+    def _step(self, action: int) -> StepResult:
         reward = 0
         pre_throw_state = self._game.state()
+        self._player.set_action_index(action)
         throw_result, winner = self._game.play_next_throw()
         self._total_agent_throws += 1
         done = throw_result.ended_game
@@ -117,13 +119,11 @@ class X01TrainingLoop(DQNTrainingLoop):
 
         return [post_throw_state.to_tensor(), reward, done, {}]
 
-    def _on_episode_end(
-        self, episode_number: int, final_state: torch.Tensor, reward: float
-    ):
+    def _on_episode_end(self, payload: EpisodeEndPayload):
         print(
-            f"Finished game {episode_number}. Final score {final_state[0]}. Reward {reward}"
+            f"Finished game {payload.episode_number}. Final score {payload.final_state_tensor[0]}. Total Reward {payload.reward}"
         )
-        self._reset_game(episode_number)
+        self._reset_game(payload.episode_number)
 
     # def _compute_winner_reward(self, turn_number, max_turns, min_win_turns) -> float:
     #     return 1 - ((turn_number - min_win_turns) / (max_turns - min_win_turns))
