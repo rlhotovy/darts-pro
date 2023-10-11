@@ -123,7 +123,7 @@ class DQNTrainingLoop(ABC):
             self._target_network.load_state_dict(self._policy_network.state_dict())
 
         for callback in self._on_episode_end_callacks:
-            callback(epsiode_number, self._current_state())
+            callback(epsiode_number, self._current_state(), reward)
 
     def _extract_tensors(
         self, experiences: list[Experience]

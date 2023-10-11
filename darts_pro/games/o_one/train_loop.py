@@ -117,8 +117,12 @@ class X01TrainingLoop(DQNTrainingLoop):
 
         return [post_throw_state.to_tensor(), reward, done, {}]
 
-    def _on_episode_end(self, episode_number: int, final_state: torch.Tensor):
-        print(f"Finished game {episode_number}. Final score {final_state[0]}")
+    def _on_episode_end(
+        self, episode_number: int, final_state: torch.Tensor, reward: float
+    ):
+        print(
+            f"Finished game {episode_number}. Final score {final_state[0]}. Reward {reward}"
+        )
         self._reset_game(episode_number)
 
     # def _compute_winner_reward(self, turn_number, max_turns, min_win_turns) -> float:

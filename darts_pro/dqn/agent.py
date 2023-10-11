@@ -23,7 +23,7 @@ class Agent:
             action = random.choice(self._actions)
         else:
             with torch.no_grad():
-                action = policy_network(state).argmax(dim=1).item()
+                action = policy_network(state).argmax().item()
 
         self._last_action_taken = action
         return action
