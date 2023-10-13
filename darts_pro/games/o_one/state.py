@@ -22,6 +22,17 @@ class X01GameState(AbstractGameState):
             current_thrower_dart_number,
         )
 
+    def __str__(self) -> str:
+        state_dict = dict(
+            scores=self.team_scores,
+            target_score=self.target_score,
+            turn_number=self.turn_number,
+            current_throwing_team=self.current_throwing_team,
+            current_throwing_player=self.current_throwing_player,
+            current_thrower_dart_number=self.current_thrower_dart_number
+        )
+        return repr(state_dict)
+
     def to_tensor(self) -> torch.Tensor:
         args = [
             self.current_throwing_team,

@@ -42,7 +42,7 @@ class X01Game(AbstractDartsGame[X01GameState]):
             self._scores[team] -= throw_total
         return (
             throw_total <= current_team_score
-            and current_player_dart_number < self._darts_per_player
+            and current_player_dart_number < self._darts_per_player - 1 # dart no. 0 indexed so - 1
         )
 
     def _game_is_complete(self) -> tuple[bool, Optional[int]]:

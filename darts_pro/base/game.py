@@ -49,11 +49,15 @@ class AbstractDartsGame(ABC, Generic[TState]):
         self._turn_number += 1
 
     # returns [ThrowResult, winning_team]
-    def play_next_throw(self) -> tuple[ThrowResult, Optional[int]]:
+    def play_next_throw(self, verbose: bool = False) -> tuple[ThrowResult, Optional[int]]:
         team = self._teams[self._current_throwing_team]
         player = [p for p in team if p.player_id == self._current_throwing_player][0]
 
         intended_target = player.compute_intended_target(self._board, self.state())
+        if verbose:
+            print(f"Playing throw {self._current_player_throw_number + 1}, turn {self._turn_number + 1} for player {player.player_id}")
+            print(f"Current scores: {self.state()}")
+            print(f"Throwing at {intended_target}")
         target_probs = player.get_outcome_probabilities(self._board, intended_target)
 
         probs = [prob for _, prob in target_probs]
@@ -69,13 +73,23 @@ class AbstractDartsGame(ABC, Generic[TState]):
             self._current_player_throw_number,
         )
         done, winner = self._game_is_complete()
+
+        if verbose:
+            print(f"Hit target {hit}")
+            print(f"Current scores: {self.state()}")
+            print(f"Game is currently done: {done}")
+
         if done:
+            if verbose:
+                print("")
             result = ThrowResult(
                 hit, self._current_player_throw_number, can_throw_again, True
             )
             return result, winner
 
         if can_throw_again:
+            if verbose:
+                print("")
             self._current_player_throw_number += 1
             result = ThrowResult(hit, self._current_player_throw_number, False, False)
             return result, None
@@ -86,14 +100,17 @@ class AbstractDartsGame(ABC, Generic[TState]):
             self._end_player_turn()
             # Need to check for things like turn limits when a player finishes
             now_done, winner = self._game_is_complete()
+            if verbose:
+                print(f"Player turn has ended. Game is now done: {now_done}. Winner: {winner}")
+                print("")
             result.ended_game = now_done
             return result, winner
 
-    def play_to_completion(self) -> Optional[int]:
+    def play_to_completion(self, verbose: bool = False) -> Optional[int]:
         done = False
         winner = None
         while not done:
-            result, winner = self.play_next_throw()
+            result, winner = self.play_next_throw(verbose)
             if result.ended_game:
                 return winner
         return None

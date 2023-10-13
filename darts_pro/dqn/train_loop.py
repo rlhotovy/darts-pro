@@ -8,7 +8,7 @@ import numpy as np
 
 from .agent import Agent
 from .network import DQN
-from .experience import ReplayMemory, Experience
+from .experience import AbstractReplayMemory, ReplayMemory, Experience
 from .q_values import QValues
 from .strategy import EpsilonGreedyStrategy
 
@@ -55,7 +55,7 @@ class DQNTrainingLoop(ABC):
         agent_actions: list[int],
         policy_network: DQN,
         target_network: DQN,
-        memory: Optional[ReplayMemory],
+        memory: Optional[AbstractReplayMemory],
         config: TrainingLoopConfig,
     ):
         self._n_episodes = n_episodes

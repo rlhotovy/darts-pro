@@ -7,7 +7,7 @@ import numpy as np
 from ...base import DartBoard, compute_probability_lookup
 from ...dqn import (
     DQN,
-    ReplayMemory,
+    AbstractReplayMemory,
     DQNTrainingLoop,
     TrainingLoopConfig,
     StepResult,
@@ -40,7 +40,7 @@ class X01TrainingLoop(DQNTrainingLoop):
         policy_network: DQN,
         target_network: DQN,
         config: X01TrainingConfig,
-        memory: Optional[ReplayMemory] = None,
+        memory: Optional[AbstractReplayMemory] = None,
         board: Optional[DartBoard] = None,
         initialize_game: Optional[X01GameInitializer] = None,
     ):
@@ -120,9 +120,9 @@ class X01TrainingLoop(DQNTrainingLoop):
         return [post_throw_state.to_tensor(), reward, done, {}]
 
     def _on_episode_end(self, payload: EpisodeEndPayload):
-        print(
-            f"Finished game {payload.episode_number}. Final score {payload.final_state_tensor[0]}. Total Reward {payload.reward}"
-        )
+        # print(
+        #     f"Finished game {payload.episode_number}. Final score {payload.final_state_tensor[0]}. Total Reward {payload.reward}"
+        # )
         self._reset_game(payload.episode_number)
 
     # def _compute_winner_reward(self, turn_number, max_turns, min_win_turns) -> float:
